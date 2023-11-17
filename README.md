@@ -27,14 +27,14 @@ To avoid potential conflict, it is advised to create a seperate virtual envrionm
 1. Import package
 
 ```python3
-import neurovelo.train import Trainer
+from neurovelo.train import Trainer
 from neurovelo.utils import ModelAnalyzer, latent_adata
 ```
 
 1. Training
 
 ```python3
-model = nv.Trainer(adata, sample_obs='sample')
+model = Trainer(adata, sample_obs='sample')
 model.save_model('/to/folder/trained.pth')
 ```
 
