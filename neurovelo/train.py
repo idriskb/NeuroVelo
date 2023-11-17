@@ -1,8 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
 from torchdiffeq import odeint
-from typing import Optional, Union
-from typing_extensions import Literal
 import numpy as np
 from anndata import AnnData
 from scipy import sparse
@@ -80,13 +78,13 @@ class Trainer:
         self,
         adata: AnnData,
         sample_obs: float,
-        percent: Optional[float] = None,
+        percent: float = 0.8,
         n_latent: int = 5,
         n_ode_hidden: int = 25,
         n_vae_hidden: int = 128,
         batch_norm: bool = False,
         ode_method: str = 'euler',
-        nepoch: Optional[int] = None,
+        nepoch: int = 1000,
         batch_size: int = 1024,
         lr: float = 1e-3,
         wt_decay: float = 1e-6,
@@ -101,7 +99,6 @@ class Trainer:
     ):
         self.adata = adata
         self.percent = percent
-        self.precent = percent
         self.n_cells = adata.n_obs
         self.batch_size = batch_size
         self.nepoch = nepoch

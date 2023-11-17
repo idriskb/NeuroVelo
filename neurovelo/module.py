@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from typing_extensions import Literal
 
 
 class LatentODE(nn.Module):
