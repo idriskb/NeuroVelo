@@ -22,7 +22,7 @@ REQUIRED = [
 
 setup(
     name='neurovelo',
-    version='0.1.0',
+    version='0.0.1',
     author='Idris Kouadri Boudjelthia',
     author_email='ikouadri@sissa.it',
     description='Interpretable learning of cellular dynamics',

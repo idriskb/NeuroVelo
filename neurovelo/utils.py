@@ -4,7 +4,8 @@ from model import TNODE
 from torch.autograd.functional import jacobian
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
-
+import copy
+import anndata as ad
 
 #Class to perform gene ranking. Output can be used directly in gseapy for pathways
 class ModelAnalyzer:
@@ -94,9 +95,18 @@ class ModelAnalyzer:
         self.similarity_matrix = sim
         return sim
 
+
+    def gene_order(self, gene_df):
+        self.new_df = gene_df.copy()
+        for column in self.new_df.columns:
+            self.new_df.loc[:, column] = self.new_df.index[self.new_df.loc[:, column].argsort()]
+        self.new_df.index = np.arange(self.new_df.shape[0])+1
+        return self.new_df
+
     def gene_ranking(self):
         all_gene_rank, all_gene_mean = {}, {} #Dictionary to save all information about genes ranking accross treatment and eigenvector
-        gene_eigen_treatment = {} #The output dictionary. It contains DataFrame of each treatment with genes average rank for each eigenvector.
+        gene_eigen_treatment_mean = {} #The output dictionary. It contains DataFrame of each treatment with genes average rank for each eigenvector.
+        gene_eigen_treatment_order = {}
         for t in self.data.obs['treatment'].unique():
             sim = self.calculate_eigenvector_similarity(t)
             treatment = t
@@ -104,9 +114,7 @@ class ModelAnalyzer:
             eigens = np.arange(self.n_vectors)
             all_gene_rank[treatment] = {}
             all_gene_mean[treatment] = {}
-            print(treatment)
             for eigen in eigens:
-                print(eigen)
                 mask = (self.similarity_matrix[:, 0].astype(int) == model) & (
                             self.similarity_matrix[:, 2].astype(int) == eigen)
                 new_ev = self.similarity_matrix[mask]
@@ -124,10 +132,11 @@ class ModelAnalyzer:
                 all_gene_rank[treatment][eigen] = genes_rank
                 all_gene_mean[treatment][eigen] = mean_gene
             
-            gene_eigen_treatment[treatment] = pd.DataFrame(all_gene_mean[treatment])
+            gene_eigen_treatment_mean[treatment] = pd.DataFrame(all_gene_mean[treatment])
+            gene_eigen_treatment_order[treatment] = self.gene_order(gene_eigen_treatment_mean[treatment])
             
         self.all_gene_rank = all_gene_rank
-        return gene_eigen_treatment
+        return gene_eigen_treatment_order,gene_eigen_treatment_mean
 
 
 
