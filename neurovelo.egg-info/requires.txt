@@ -1,0 +1,17 @@
+numpy>=1.20
+scikit-learn>=0.22
+pandas
+scipy>=1.4.1
+seaborn
+matplotlib>=3.3.0
+tqdm
+scanpy>=1.5
+anndata>=0.7.5
+scvelo>=0.2.2
+IPython
+ipykernel
+IProgress
+ipywidgets
+jupyter
+torch
+torchdiffeq
