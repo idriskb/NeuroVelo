@@ -77,7 +77,7 @@ class Trainer:
     def __init__(
         self,
         adata: AnnData,
-        sample_obs: float,
+        sample_obs: str,
         percent: float = 0.8,
         n_latent: int = 5,
         n_ode_hidden: int = 25,
@@ -93,9 +93,9 @@ class Trainer:
         use_gpu: bool = True,
         n_sample: int = 1,
         layer = 'spliced',
-        use_pca: bool = False,
-        init_both: bool = False,
-        same_ode: bool = False
+        use_pca: bool = True,
+        init_both: bool = True,
+        same_ode: bool = True
     ):
         self.adata = adata
         self.percent = percent
@@ -223,6 +223,7 @@ class Trainer:
             self.optimizer.zero_grad()
             X = X.to(self.device)
             Y = Y.to(self.device)
+            S = S.to(self.device)
             loss, _, _, _ = self.model(X,Y,S)
             loss.backward()
             self.optimizer.step()
@@ -256,6 +257,7 @@ class Trainer:
         for X, Y, S in DL:
             X = X.to(self.device)
             Y = Y.to(self.device)
+            S = S.to(self.device)
             loss, _,_,_ = self.model(X, Y, S)
             total_loss += loss * X.size(0)
             ss += X.size(0)

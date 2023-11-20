@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import issparse
-from model import TNODE
+from .model import TNODE
 from torch.autograd.functional import jacobian
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
