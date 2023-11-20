@@ -28,20 +28,21 @@ To avoid potential conflict, it is advised to create a seperate virtual envrionm
 
 ```python3
 from neurovelo.train import Trainer
-from neurovelo.utils import ModelAnalyzer, latent_adata
+from neurovelo.utils import ModelAnalyzer, latent_data
 ```
 
 1. Training
 
 ```python3
 model = Trainer(adata, sample_obs='sample')
-model.save_model('/to/folder/trained.pth')
+mode.train()
+model.save_model('/to/folder/','trained.pth')
 ```
 
 1. Visualization
 
 ```python3
-latent_adata = latent_adata(adata, '/to/folder/trained.pth')
+latent_adata = latent_data(adata, '/to/folder/trained.pth')
 scv.pp.neighbors(latent_adata, use_rep='X_z', n_neighbors=20)
 sc.tl.umap(latent_adata,  min_dist=0.1)
 scv.tl.velocity_graph(latent_adata, vkey='spliced_velocity', xkey='spliced')
