@@ -6,6 +6,7 @@ import torch
 from sklearn.metrics.pairwise import cosine_similarity
 import copy
 import anndata as ad
+import pandas as pd
 
 #Class to perform gene ranking. Output can be used directly in gseapy for pathways
 class ModelAnalyzer:
