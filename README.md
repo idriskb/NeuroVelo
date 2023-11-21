@@ -39,7 +39,7 @@ mode.train()
 model.save_model('/to/folder/','trained.pth')
 ```
 
-1. Visualization
+2. Visualization
 
 ```python3
 latent_adata = latent_data(adata, '/to/folder/trained.pth')
@@ -50,11 +50,28 @@ scv.tl.velocity_embedding(latent_adata, vkey='spliced_velocity', basis='umap')
 scv.pl.velocity_embedding_stream(latent_adata,basis='umap',vkey='spliced_velocity', color='sample')
 ```
 
-1. Analysis
+3. Analysis
 
 ```python3
 analyzer = ModelAnalyzer(adata, n_vectors=10, '/path/to/trained_models/')
 results = analyzer.models_output()
 gene_ranking_order, gene_ranking_mean = analyzer.gene_ranking() #gene_ranking_mean can be directly used with prerank gene set enrichment analysis
 ```
-   
+
+### For further and detailed instructions check the notebooks
+
+# Citation
+If you find this work useful please cite:
+```
+@article {Idris2023.11.17.567500,
+	author = {Idris Kouadri Boudjelthia and Salvatore Milite and Nour El Kazwini and Javier Fernandez-Mateos and Nicola Valeri and Yuanhua Huang and Andrea Sottoriva and Guido Sanguinetti},
+	title = {NeuroVelo: interpretable learning of cellular dynamics from single-cell transcriptomic data},
+	elocation-id = {2023.11.17.567500},
+	year = {2023},
+	doi = {10.1101/2023.11.17.567500},
+	publisher = {Cold Spring Harbor Laboratory},
+	URL = {https://www.biorxiv.org/content/early/2023/11/17/2023.11.17.567500},
+	eprint = {https://www.biorxiv.org/content/early/2023/11/17/2023.11.17.567500.full.pdf},
+	journal = {bioRxiv}
+}
+```
