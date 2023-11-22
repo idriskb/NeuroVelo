@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 REQUIRED = [
-    'numpy>=1.20',
+    'numpy==1.23.0',
     'scikit-learn>=0.22',
-    'pandas',
+    'pandas==1.5.3',
     'scipy>=1.4.1',
     'seaborn',
-    'matplotlib>=3.3.0',
+    'matplotlib==3.7.3',
     'tqdm',
     'scanpy>=1.5',
     'anndata>=0.7.5',
@@ -22,7 +22,7 @@ REQUIRED = [
 
 setup(
     name='neurovelo',
-    version='0.0.3',
+    version='0.0.5',
     author='Idris Kouadri Boudjelthia',
     author_email='ikouadri@sissa.it',
     description='Interpretable learning of cellular dynamics',
