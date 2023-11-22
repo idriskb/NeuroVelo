@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 REQUIRED = [
-    'numpy>=1.20',
+    'numpy==1.23.0',
     'scikit-learn>=0.22',
-    'pandas',
+    'pandas==1.5.3',
     'scipy>=1.4.1',
     'seaborn',
-    'matplotlib>=3.3.0',
+    'matplotlib==3.7.3',
     'tqdm',
     'scanpy>=1.5',
     'anndata>=0.7.5',
