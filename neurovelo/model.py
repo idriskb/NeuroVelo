@@ -92,13 +92,12 @@ class TNODE(nn.Module):
 
         Returns
         ----------
-        5-tuple of :class:`torch.Tensor`
+        4-tuple of :class:`torch.Tensor`
             Tensors for loss, including:
             1) total loss,
-            2) reconstruction loss from encoder-derived latent space,
-            3) reconstruction loss from ODE-solver latent space,
-            4) KL divergence,
-            5) divergence between encoder-derived latent space and ODE-solver latent space
+            2) spliced reconstruction loss,
+            3) unspliced reconsutrction loss,
+            3) ODE loss,
         """
         Ts, z_s = self.encoder(s)
         _, z_u = self.encoder(u)
