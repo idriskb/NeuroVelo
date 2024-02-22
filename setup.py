@@ -10,7 +10,7 @@ REQUIRED = [
     'tqdm',
     'scanpy>=1.5',
     'anndata>=0.7.5',
-    'scvelo>=0.2.2',
+    'scvelo==0.2.2',
     'IPython',
     'ipykernel',
     'IProgress',
@@ -22,7 +22,7 @@ REQUIRED = [
 
 setup(
     name='neurovelo',
-    version='0.0.5',
+    version='0.0.6',
     author='Idris Kouadri Boudjelthia',
     author_email='ikouadri@sissa.it',
     description='Interpretable learning of cellular dynamics',
