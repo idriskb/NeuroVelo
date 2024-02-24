@@ -107,6 +107,9 @@ class TNODE(nn.Module):
         Ts = Ts[index]
         s = s[index]
         z_s = z_s[index]
+        u = u[index]
+        z_u = z_u[index]
+        g = g[index]
         index2 = (Ts[:-1] != Ts[1:])
         index2 = torch.cat((index2, torch.tensor([True]).to(index2.device))) ## index2 is used to get unique time points as odeint requires strictly increasing/decreasing time points
         Ts = Ts[index2]
