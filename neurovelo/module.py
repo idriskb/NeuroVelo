@@ -83,6 +83,7 @@ class Encoder(nn.Module):
             self.fc.add_module('N1', nn.BatchNorm1d(n_hidden))
         self.fc2 = nn.Linear(n_hidden, n_latent)
         self.fc3 = nn.Linear(n_hidden, 1)
+        
 
     def forward(self, x:torch.Tensor) -> tuple:
         x = self.fc(x)

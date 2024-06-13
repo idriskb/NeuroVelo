@@ -1,6 +1,8 @@
 import torch
 from torch.utils.data import DataLoader
 from torchdiffeq import odeint
+from typing import Optional, Union
+from typing_extensions import Literal
 import numpy as np
 from anndata import AnnData
 from scipy import sparse
@@ -37,6 +39,9 @@ class Trainer:
     batch_norm
         Whether to include a `BatchNorm` layer.
         (Default: `False`)
+    odesample_obs
+        key in anndata observation for ODE sample (This is different from celltype, use it only when you want to modelize different dynamics)
+        (Default:None)
     ode_method
         The solver for integration.
         (Default: `'euler'`)
@@ -66,39 +71,37 @@ class Trainer:
     use_pca
         Whether to initialize the linear encoder with PCA
         (Default: False)
-    init_both
-        Whether to initialize the decoder with same weight as the encoder (Tied autoencoder)
+    reconstruct_xt
+        Whether to recontsuct x(t) instead of z(t)
         (Default: False)
-    same_ode
-        Whether to initialize all ODEs with same initialization
-        (Default: 'False')
     """
 
     def __init__(
         self,
         adata: AnnData,
-        sample_obs: str,
-        percent: float = 0.8,
+        percent: Optional[float] = None,
+        odesample_obs: Optional[str] = None,
         n_latent: int = 5,
         n_ode_hidden: int = 25,
         n_vae_hidden: int = 128,
         batch_norm: bool = False,
-        ode_method: str = 'euler',
-        nepoch: int = 1000,
+        ode_method: str = 'dopri5',
+        nepoch: Optional[int] = None,
         batch_size: int = 1024,
         lr: float = 1e-3,
         wt_decay: float = 1e-6,
         eps: float = 0.01,
         random_state: int = 0,
-        use_gpu: bool = True,
+        use_gpu: bool = False,
         n_sample: int = 1,
         layer = 'spliced',
-        use_pca: bool = True,
-        init_both: bool = True,
-        same_ode: bool = True
+        use_pca: bool = False,
+        pre_ptime: bool = False,
+        reconstruct_xt: bool = False,
     ):
         self.adata = adata
         self.percent = percent
+        self.precent = percent
         self.n_cells = adata.n_obs
         self.batch_size = batch_size
         self.nepoch = nepoch
@@ -107,16 +110,10 @@ class Trainer:
         self.eps = eps
         self.n_latent = n_latent
         self.n_vae_hidden = n_vae_hidden 
-        self.sample_obs = sample_obs
-
-        if self.sample_obs in self.adata.obs:
-            unique_size =self.adata.obs[self.sample_obs].unique().size
-            if unique_size != n_sample:
-                print('Number of unique elemnts in {self.sample_obs} is {unique_size}, number of samples given by user: {n_sample}')
-                raise ValueError(f'Number of unique elemnts in {self.sample_obs} is different from number of samples given')
-        else:
-            raise KeyError(f"The specified key '{self.sample_obs}' does not exist in the 'obs' attribute.")
-
+        self.odesample_obs = odesample_obs
+        self.pre_ptime = pre_ptime
+        self.reconstruct_xt = reconstruct_xt
+        
         if layer == 'spliced':
             self.layer = ['spliced','unspliced']
             print('Using spliced and unspliced reads')
@@ -127,25 +124,34 @@ class Trainer:
         self.random_state = random_state
         np.random.seed(random_state)
         torch.manual_seed(random_state)
-
+        
+        #Convert sparse input to matrix
         if issparse(adata.layers[self.layer[0]]):
             self.adata.layers[self.layer[0]], self.adata.layers[self.layer[1]] = adata.layers[self.layer[0]].toarray(), adata.layers[self.layer[1]].toarray()
 
-
+        
+        if odesample_obs is None:
+            self.adata.obs[odesample_obs] = 0
+        assert self.adata.obs[odesample_obs].unique().size == n_sample
         self.n_int = adata.n_vars
         self.model_kwargs = dict(
             n_int = self.n_int,
-            n_latent = n_latent,
+            n_latent = self.n_latent,
             n_sample = n_sample,
             n_ode_hidden = n_ode_hidden,
             n_vae_hidden = n_vae_hidden,
             batch_norm = batch_norm,
             ode_method = ode_method,
-            same_ode = same_ode,
+            pre_ptime = pre_ptime,
+            reconstruct_xt = reconstruct_xt
         )
         self.model = TNODE(**self.model_kwargs)
         self.log = defaultdict(list)
         
+        if pre_ptime:
+            ptime = adata.obs['latent_time']
+        else:
+            adata.obs['latent_time'] = np.ones(adata.n_obs)
         
         if use_pca:
             w1, w2 = self.get_init_pca()
@@ -153,10 +159,6 @@ class Trainer:
             self.model.encoder.fc2.weight.data.copy_(w2)
             self.adata.layers[self.layer[0]] = self.adata.layers[self.layer[0]] - self.adata.layers[self.layer[0]].mean(0)
             self.adata.layers[self.layer[1]] = self.adata.layers[self.layer[1]] - self.adata.layers[self.layer[1]].mean(0)
-
-            if init_both:
-                self.model.decoder.fc.L1.weight.data.copy_(w2.T)
-                self.model.decoder.fc2.weight.data.copy_(w1.T)
 
         
         gpu = torch.cuda.is_available() and use_gpu
@@ -179,7 +181,7 @@ class Trainer:
         Generate Data Loaders for training and validation datasets.
         """
 
-        train_data, val_data = split_data(self.adata, self.percent,self.sample_obs, self.layer)
+        train_data, val_data = split_data(self.adata, self.percent,self.odesample_obs, self.layer)
         self.train_dataset = MakeDataset(train_data)
         self.val_dataset = MakeDataset(val_data)
 
@@ -191,6 +193,7 @@ class Trainer:
         self.get_data_loaders()
         params = filter(lambda p: p.requires_grad, self.model.parameters())
         self.optimizer = torch.optim.Adam(params, lr = self.lr, weight_decay = self.wt_decay, eps = self.eps)
+        #self.optimizer = torch.optim.SGD(params, lr=self.lr, weight_decay=self.wt_decay, momentum=0.9)
         with tqdm(total=self.nepoch, unit='epoch') as t:
             for tepoch in range(t.total):
                 train_loss = self.on_epoch_train(self.train_dl)
@@ -219,12 +222,13 @@ class Trainer:
         self.model.train()
         total_loss = .0
         ss = 0
-        for X, Y, S in DL:
+        for X, Y, T, S in DL:
             self.optimizer.zero_grad()
             X = X.to(self.device)
             Y = Y.to(self.device)
+            T = T.to(self.device)
             S = S.to(self.device)
-            loss, _, _, _ = self.model(X,Y,S)
+            loss, _, _, _ = self.model(X,Y,T,S)
             loss.backward()
             self.optimizer.step()
 
@@ -254,11 +258,12 @@ class Trainer:
         self.model.eval()
         total_loss = .0
         ss = 0
-        for X, Y, S in DL:
+        for X, Y, T, S in DL:
             X = X.to(self.device)
             Y = Y.to(self.device)
+            T = T.to(self.device)
             S = S.to(self.device)
-            loss, _,_,_ = self.model(X, Y, S)
+            loss, _,_,_ = self.model(X, Y, T, S)
             total_loss += loss * X.size(0)
             ss += X.size(0)
 
