@@ -6,7 +6,7 @@ from anndata import AnnData
 def split_data(
     adata: AnnData,
     percent: float,
-    sample_obs: float,
+    sample_obs: str,
     layer = ['spliced','unspliced']
 ):
     """
@@ -37,8 +37,8 @@ def split_data(
     val_idx = np.random.choice(indices2, n_val, replace = False)
 
 
-    train_data = [adata.layers[layer[0]][train_idx], adata.layers[layer[1]][train_idx], adata.obs[sample_obs][train_idx]]
-    val_data = [adata.layers[layer[0]][val_idx], adata.layers[layer[1]][val_idx], adata.obs[sample_obs][val_idx]]
+    train_data = [adata.layers[layer[0]][train_idx], adata.layers[layer[1]][train_idx], adata.obs['latent_time'][train_idx].values, adata.obs[sample_obs][train_idx].values]
+    val_data = [adata.layers[layer[0]][val_idx], adata.layers[layer[1]][val_idx], adata.obs['latent_time'][val_idx].values, adata.obs[sample_obs][val_idx].values]
     return train_data, val_data
 
 
@@ -61,9 +61,10 @@ class MakeDataset(Dataset):
         self.data[0] = torch.Tensor(self.data[0])
         self.data[1] = torch.Tensor(self.data[1])
         self.data[2] = torch.Tensor(self.data[2])
+        self.data[3] = torch.Tensor(self.data[3])
 
     def __len__(self):
         return self.data[0].size(0)
 
     def __getitem__(self, idx):
-        return self.data[0][idx], self.data[1][idx], self.data[2][idx]
+        return self.data[0][idx], self.data[1][idx], self.data[2][idx], self.data[3][idx]
