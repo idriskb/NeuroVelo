@@ -26,7 +26,7 @@ setup(
     description='Interpretable learning of cellular dynamics and gene interactions network',
     packages=find_packages(),
     install_requires=REQUIRED,
-    python_requires='>=3.8, <3.10',
+    python_requires='>=3.8, <=3.9.10',
     classifiers=[
         'Intended Audience :: Science/Research',
         'Programming Language :: Python :: 3',
