@@ -75,7 +75,7 @@ class GraphMaker:
         for i, j in zip(significant_connections[0], significant_connections[1]):
             if i != j:
                 weight = heatmap_data[i, j]
-                G.add_edge(g[i], g[j], weight=weight, direction='backward')
+                G.add_edge(g[i], g[j], weight=weight, direction='forward')
 
         return G
 
@@ -217,7 +217,7 @@ class GraphMakerAnimation:
         for i, j in zip(significant_connections[0], significant_connections[1]):
             if i != j:
                 weight = heatmap_data[i, j]
-                G.add_edge(g[i], g[j], weight=weight, direction='backward')
+                G.add_edge(g[i], g[j], weight=weight, direction='forward')
         return G
 
     def give_small(self, matrix, gi):
